@@ -144,7 +144,7 @@ int main(int argc, char **argv)
 	int imageHeight = int(upperFreqLimit / freqResolution) + 1;
 	if(imageHeight > windowSize / 2) imageHeight = windowSize / 2;
 
-	if(imageWidth > 100000 || imageHeight > 5000 || imageWidth * imageHeight > 100000000) {
+	if(imageWidth > 200000 || imageHeight > 5000 || imageWidth * imageHeight > 1000000000) {
 		printf("Error: image would be too large!\n"); return 1;}
 	
 
