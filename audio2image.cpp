@@ -10,7 +10,7 @@ using namespace std;
 
 void rdft(int n, int isgn, float *a);
 
-int windowSize = 4096, windowInc = 2048, upperFreqLimit = 5000.0, tradeoff = 1.0;
+int windowSize = 4096, windowInc = 100, upperFreqLimit = 7000.0, tradeoff = 3.0;
 
 vector<float> window, fftdata;
 
@@ -50,12 +50,12 @@ int main(int argc, char **argv)
 	char *inputfile, *outputfile;
 	if(argc < 3) {
 		printf("Syntax: audio2image inputfile outputfile [windowsize] [windowinc] [tradeoff] [upperfreq]\n");
-		printf("\twindowsize = FFT window size (default 4096)\n");
-		printf("\twindowinc  = FFT window movement (default 2048)\n");
-		printf("\ttradeoff   = frequency/time-resolution-tradeoff (default 1)\n");
+		printf("\twindowsize = FFT window size (default %d)\n", windowSize);
+		printf("\twindowinc  = FFT window movement (default %d)\n", windowInc);
+		printf("\ttradeoff   = frequency/time-resolution-tradeoff (default %d)\n", tradeoff);
 		printf("\t\t(1 for high resolution in frequency domain)\n");
 		printf("\t\t(10 for high resolution in time domain)\n");
-		printf("\tupperfreq  = maximal frequency in image (default 7000)\n");
+		printf("\tupperfreq  = maximal frequency in image (default %d)\n", upperFreqLimit);
 		return 1;
 	}
 	

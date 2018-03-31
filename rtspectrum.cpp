@@ -72,7 +72,7 @@ void audioCallback(void *userdata, Uint8 *data, int length)
 
 const char *title = "Spektrum";
 
-int fftSize = 4096, windowInc = 200, tradeoff = 3.0;
+int fftSize = 4096, windowInc = 100, tradeoff = 3.0;
 vector<float> block, window, fftdata, spectrum;
 vector< vector<float> > spectrumList;
 
@@ -271,8 +271,8 @@ void saveAudioRecording(const string &filename)
 	SNDFILE *sf = sf_open(filename.c_str(), SFM_WRITE, &sf_info);
 	Error::raiseIfNull(sf, "sf_open failed");
 
-	for(int i = 0; i < audioData.size(); ++i)
-		sf_write_short(sf, &audioData[i], 1);
+	for(int i = 0; i < audioData.size(); i += channels)
+		sf_write_short(sf, &audioData[i], channels);
 	sf_close(sf);
 }
 
