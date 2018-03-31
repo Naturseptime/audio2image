@@ -51,8 +51,8 @@ int main(int argc, char **argv)
 	if(argc < 3) {
 		printf("Syntax: audio2image inputfile outputfile [windowsize] [windowinc] [tradeoff] [upperfreq]\n");
 		printf("\twindowsize = FFT window size (default 4096)\n");
-		printf("\twindowinc  = FFT window movement (default 2048)\n");
-		printf("\ttradeoff   = frequency/time-resolution-tradeoff (default 1)\n");
+		printf("\twindowinc  = FFT window movement (default 200)\n");
+		printf("\ttradeoff   = frequency/time-resolution-tradeoff (default 3)\n");
 		printf("\t\t(1 for high resolution in frequency domain)\n");
 		printf("\t\t(10 for high resolution in time domain)\n");
 		printf("\tupperfreq  = maximal frequency in image (default 7000)\n");
