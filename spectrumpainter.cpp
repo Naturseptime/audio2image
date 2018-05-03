@@ -20,6 +20,7 @@ void SpectrumPainter::feedWithInput(const vector<float> &input)
 	{
 		block[blockPosition] = input[i];
 		++blockPosition;
+		++samplesProcessed;
 
 		if(blockPosition == block.size())
 		{
@@ -41,6 +42,8 @@ void SpectrumPainter::reset()
 {
 	blockPosition = 0;
 	cursorPosition = 0;
+	samplesProcessed = 0;
+	scrolledTotal = 0;
 	block.assign(settings.fftSize, 0);
 	SDL_FillRect(imageSurface, NULL, SDL_MapRGB(imageSurface->format, 0, 0, 0));
 }
@@ -60,6 +63,7 @@ void SpectrumPainter::drawSpectrogram(const vector< vector<float> > &spectrums)
 		dstrect.y = 0;			
 		SDL_BlitSurface(imageSurface, &srcrect, imageSurface, &dstrect);
 		cursorPosition = imageSurface->w - spectrums.size();
+		scrolledTotal += move;
 	}
 
 	SDL_LockSurface(imageSurface);
@@ -203,7 +207,49 @@ SDL_Surface* SpectrumPainter::audioToImage(const vector<Sint16> &audioData, cons
 	cout << "Complete!" << endl;
 
 	SDL_UnlockSurface(image);
+	if(settings.labels) spectrumPainter.drawLabeling(image);
 	
 	return image;
 }
 
+
+
+void SpectrumPainter::drawLabeling(SDL_Surface *surface)
+{
+	const float frequencyGrid = 1000.0;
+	const float timeGrid = 1.0;
+
+	float timeStart = scrolledTotal * settings.timeResolution;
+	float timeEnd = (scrolledTotal  + surface->w) * settings.timeResolution;
+	
+	int frequencySteps = ceil(settings.upperFreqLimit / frequencyGrid);	
+	int timeStepsStart = floor(timeStart / timeGrid) - 1;
+	int timeStepsEnd = ceil(timeEnd / timeGrid);
+	SDL_Color textColor = { 255, 255, 255, 255 };
+
+	for(int i = 1; i < frequencySteps; ++i) {
+		string text = toString(i * frequencyGrid / 1000.0) + "kHz";
+
+		SDL_Surface* textSurface = TTF_RenderText_Blended(settings.font, text.c_str(), textColor);
+		Error::raiseIfNull(textSurface, "TTF_RenderText_Solid failed");
+		
+		SDL_Rect dstrect;
+		dstrect.x = 0;
+		dstrect.y = surface->h - i * frequencyGrid / settings.freqResolution - TTF_FontHeight(settings.font) / 2;
+		SDL_BlitSurface(textSurface, NULL, surface, &dstrect);
+		SDL_FreeSurface(textSurface);
+	}
+
+	for(int i = timeStepsStart; i <= timeStepsEnd; ++i) {
+		string text = toString(i * timeGrid) + "s";
+		
+		SDL_Surface* textSurface = TTF_RenderText_Blended(settings.font, text.c_str(), textColor);
+		Error::raiseIfNull(textSurface, "TTF_RenderText_Solid failed");
+		
+		SDL_Rect dstrect;		
+		dstrect.x = i * timeGrid / settings.timeResolution - scrolledTotal;
+		dstrect.y = surface->h - TTF_FontHeight(settings.font);				
+		SDL_BlitSurface(textSurface, NULL, surface, &dstrect);
+		SDL_FreeSurface(textSurface);
+	}
+}

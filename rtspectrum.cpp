@@ -4,8 +4,6 @@
 #include <SDL_audio.h>
 #include <sndfile.h>
 #include <vector>
-#include <string>
-#include <sstream>
 #include <iostream>
 #include <iomanip>
 #include <cstdlib>
@@ -14,17 +12,6 @@
 #include "spectrumpainter.hpp"
 
 using namespace std;
-
-template<class T>
-std::string toString(T object)
-{
-	std::string r;
-	std::stringstream s;
-	s << object;
-	s >> r;
-	return r;	
-}
-
 
 class RTSpectrumApp
 {
@@ -77,7 +64,6 @@ void globalAudioCallback(void *userdata, Uint8 *data, int length)
 RTSpectrumApp::RTSpectrumApp()
 {
 	quit = recording = false;
-
 	screenWidth = 1200;
 	screenHeight = int(settings.upperFreqLimit / settings.freqResolution) + 1;
 
@@ -119,7 +105,9 @@ void RTSpectrumApp::initializeSDL()
 	Error::raiseIfNotNull(result, "TTF_Init failed");
     font = TTF_OpenFont("OpenSans-Regular.ttf", 16);
 	Error::raiseIfNull(font, "TTF_OpenFont failed");
-
+	settings.font = font;
+	settings.labels = true;
+	
 	// Initialize Audio
 	SDL_AudioSpec want, have;
 	SDL_zero(want);
@@ -163,7 +151,7 @@ void RTSpectrumApp::run()
 		}
 
 		processAudio();
-		drawLabels();
+		if(settings.labels) drawLabels();
 
 		const float deltaTime = 0.04; 
 		int endTime = SDL_GetTicks();
@@ -180,10 +168,13 @@ void RTSpectrumApp::onKeyDown(const SDL_Event &event)
 			quit = true;
 			break;
 		case SDLK_SPACE:
-			recording = !recording;
+			recording = true;
 			break;
 		case SDLK_r:
 			clearRecording();
+			break;
+		case SDLK_l:
+			settings.labels = !settings.labels;
 			break;
 		case SDLK_s:
 			string timeStr = timeString(time(0));
@@ -197,7 +188,7 @@ void RTSpectrumApp::onKeyUp(const SDL_Event &event)
 {
 	switch(event.key.keysym.sym) {
 		case SDLK_SPACE:
-			//recording = false;
+			recording = false;
 			break;
 	}
 }
@@ -235,7 +226,7 @@ void RTSpectrumApp::drawLabels()
 {	
 	string text = string("Last ") + toString(settings.timeResolution * screenWidth) + " sec, ";
 	text += string("0 - ") + toString(settings.freqResolution * screenHeight) + " Hz";
-	text += " Keys: Space = record, s = Save, r = Reset";
+	text += " Keys: Space = record, s = Save, r = Reset, l = Labels";
 	SDL_Color textColor = { 255, 255, 255, 255 };
 	SDL_Surface* textSurface = TTF_RenderText_Blended(font, text.c_str(), textColor);
 	
@@ -245,6 +236,8 @@ void RTSpectrumApp::drawLabels()
 	dstrect.y = 0;			
 	SDL_BlitSurface(textSurface, NULL, screenSurface, &dstrect);
 	SDL_FreeSurface(textSurface);
+
+	spectrumPainter->drawLabeling(screenSurface);
 }
 
 void RTSpectrumApp::clearRecording()

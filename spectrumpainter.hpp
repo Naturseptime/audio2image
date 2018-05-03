@@ -3,7 +3,10 @@
 
 #include <SDL_image.h>
 #include <SDL_surface.h>
+#include <SDL_ttf.h>
 #include <vector>
+#include <string>
+#include <sstream>
 
 using namespace std;
 
@@ -13,10 +16,12 @@ struct Settings
 		sampleRate = 44100;
 		channels = 2;
 		fftSize = 4096;
-		windowInc = 100;
+		windowInc = 200;
 		tradeoff = 7;
 		upperFreqLimit = 7000.0;
 		ampScale = 1.0;
+		labels = true;
+		font = NULL;
 		computeHelper();
 	}
 
@@ -32,6 +37,8 @@ struct Settings
 	float upperFreqLimit;
 	float timeResolution, freqResolution;
 	float ampScale;
+	bool labels;
+	TTF_Font *font;
 };
 
 
@@ -42,6 +49,7 @@ public:
 	void feedWithInput(const vector<float> &input);
 	void reset();
 	static SDL_Surface* audioToImage(const vector<Sint16> &audioData, const Settings &settings);
+	void drawLabeling(SDL_Surface *surface);	
 private:
 	void frequencyAnalysis(const vector<float> &block, vector<float> &spectrum);
 	void drawSpectrogram(const vector< vector<float> > &spectrums);
@@ -55,7 +63,7 @@ private:
 
 	vector<float> block, window;
 	vector< vector<float> > spectrums;
-	int blockPosition, cursorPosition;
+	int blockPosition, cursorPosition, samplesProcessed, scrolledTotal;
 
 	Settings settings;
 	SDL_Surface *imageSurface;
@@ -87,6 +95,17 @@ public:
 private:
 	const char *message;
 };
+
+
+template<class T>
+std::string toString(T object)
+{
+	std::string r;
+	std::stringstream s;
+	s << object;
+	s >> r;
+	return r;	
+}
 
 
 #endif
